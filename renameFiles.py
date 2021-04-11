@@ -9,11 +9,11 @@ def main():
    path = input("Enter path to bulk rename folder: ")
    
    #path="E:/Outside Fiverr/uziel/Object Identifying Project/Training/cascade_training_part2_try1/n/"
-   print("\nThis will rename all files at "+path)
-   print("Do you wish to continute? (Y/N)", end="")
+   #print("\nThis will rename all files at "+path)
+   #print("Do you wish to continute? (Y/N)", end="")
    consent = input()
-   if consent!='Y':
-      sys.exit()
+   #if consent!='Y':
+      #sys.exit()
    for filename in os.listdir(path):
       my_dest =str(i) + ".jpg"
       my_source =path + filename
