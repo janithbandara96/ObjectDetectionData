@@ -3,6 +3,7 @@ import os
 import time
 # from vimba import *
 import cv2
+import numpy as np
 from pyModbusTCP.client import ModbusClient
 
 part1_casc = cv2.CascadeClassifier('main_casc/cascade1.xml')
@@ -56,7 +57,9 @@ part11_2_casc = cv2.CascadeClassifier('sub_casc/cascade11.2.xml')
 part11_3_casc = cv2.CascadeClassifier('sub_casc/cascade11.3.xml')
 part11_4_casc = cv2.CascadeClassifier('sub_casc/cascade11.4.xml')
 
-cv2.namedWindow('Indust Labs Object Detection Program', cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)
+nextreg = 20
+
+# cv2.namedWindow('Indust Labs Object Detection Program', cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)
 
 def resize(img, scale):
     scale_percent = scale
@@ -68,6 +71,7 @@ def resize(img, scale):
 
 def analyze1(cropped):
     orientation = 0
+    pick_point = [0,0,0,0]
     detect1_1 = part1_1_casc.detectMultiScale(cropped, 1.1, 1, minSize=(50, 50))
     detect1_2 = part1_2_casc.detectMultiScale(cropped, 1.1, 1, minSize=(50, 50))
     detect1_3 = part1_3_casc.detectMultiScale(cropped, 1.1, 1, minSize=(50, 50))
@@ -77,16 +81,18 @@ def analyze1(cropped):
         orientation = 2
     elif len(detect1_3)>0:
         orientation = 3
-    detectpik = partpik_casc.detectMultiScale(cropped, 1.1, 1, minSize=(10, 10))
+    detectpik = partpik_casc.detectMultiScale(cropped, 1.1, 1, minSize=(0, 10))
     if len(detectpik)>0:
         pick_point = detectpik[0]
-        return orientation, pick_point
+    return orientation, pick_point
 
 def analyze2(cropped):
     orientation = 0
+    pick_point = [0, 0, 0, 0]
     detect2_1 = part2_1_casc.detectMultiScale(cropped, 1.1, 1, minSize=(50, 50))
     detect2_2 = part2_2_casc.detectMultiScale(cropped, 1.1, 1, minSize=(50, 50))
     detect2_3 = part2_3_casc.detectMultiScale(cropped, 1.1, 1, minSize=(50, 50))
+
     if len(detect2_1)>0:
         orientation = 1
     elif len(detect2_2)>0:
@@ -96,10 +102,11 @@ def analyze2(cropped):
     detectpik = partpik_casc.detectMultiScale(cropped, 1.1, 1, minSize=(10, 10))
     if len(detectpik)>0:
         pick_point = detectpik[0]
-        return orientation, pick_point
+    return orientation, pick_point
 
 def analyze3(cropped):
     orientation = 0
+    pick_point = [0, 0, 0, 0]
     detect3_1 = part3_1_casc.detectMultiScale(cropped, 1.1, 1, minSize=(50, 50))
     detect3_2 = part3_2_casc.detectMultiScale(cropped, 1.1, 1, minSize=(50, 50))
     detect3_3 = part3_3_casc.detectMultiScale(cropped, 1.1, 1, minSize=(50, 50))
@@ -112,7 +119,7 @@ def analyze3(cropped):
     detectpik = partpik_casc.detectMultiScale(cropped, 1.1, 1, minSize=(10, 10))
     if len(detectpik)>0:
         pick_point = detectpik[0]
-        return orientation, pick_point
+    return orientation, pick_point
 
 def analyze4(cropped):
     orientation = 0
@@ -235,8 +242,8 @@ def analyze11(cropped):
         orientation = 4
     return orientation
 
-
 def sendData(partNo, pickpoinX, pickpointY, orientationNo, count):
+    global nextreg
     client.write_multiple_registers(nextreg, [partNo, pickpoinX, pickpointY, orientationNo])
     nextreg += 10
     client.write_single_register(partNo, count)
@@ -256,6 +263,10 @@ def findObjects(input_path, output_path):
     count11 = 0
 
     img = cv2.imread(input_path)
+    alpha = 1
+    beta = -30
+    lowBright = cv2.addWeighted(img, alpha, np.zeros(img.shape, img.dtype), 0, beta)
+    blur = cv2.GaussianBlur(lowBright, (5,5), 0)
 
     # with Vimba.get_instance() as vimba:
     #     cams = vimba.get_all_cameras()
@@ -266,9 +277,10 @@ def findObjects(input_path, output_path):
     #             frame.convert_pixel_format(PixelFormat.Bgr8)
                 # img = frame.as_opencv_image()
 
-                # img = resize(img, 60)
+    # img = resize(img, 60)
 
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    gray = cv2.cvtColor(blur, cv2.COLOR_BGR2GRAY)
+    img = blur
     detect1 = part1_casc.detectMultiScale(gray, 1.1, 1, minSize=(250,250))
     detect2 = part2_casc.detectMultiScale(gray, 1.1, 4, minSize=(100,100))
     detect3 = part3_casc.detectMultiScale(gray, 1.1, 5,minSize=(90,90))
@@ -281,6 +293,7 @@ def findObjects(input_path, output_path):
     detect10 = part10_casc.detectMultiScale(gray, 1.1, 5, minSize=(90, 90))
     detect11 = part11_casc.detectMultiScale(gray, 1.1, 5, minSize=(90, 90))
 
+
     for (x, y, w, h) in detect1:
         count1 += 1
         sizeText = "("+str(w)+","+str(h)+")"
@@ -288,11 +301,11 @@ def findObjects(input_path, output_path):
         cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 5)
         cropped = img[y:y + h, x:x + w]
         orientation, pick_point = analyze1(cropped)
-        pickpoint = (pick_point[0]+(pick_point[2]/2), pick_point[1]+(pick_point[3]/2))
+        pickpoint = (pick_point[0]+int(pick_point[2]/2), pick_point[1]+int(pick_point[3]/2))
         cv2.rectangle(img, (x+pick_point[0], y+pick_point[1]), ( x+pick_point[0]+pick_point[2], y+pick_point[1]+pick_point[3]), (0, 255, 0), 5)
         cv2.putText(img, "Part 1" + sizeText + "ori:"+ str(orientation) + str(pickpoint), (x, y - 10), cv2.FONT_HERSHEY_COMPLEX, 1.5, (0, 255, 0), 2)
         # print("Part 1", end=",")
-        sendData(1, pickpoint[0], pickpoint[1], orientation,count1)
+        sendData(1, pickpoint[0], pickpoint[1], orientation, count1)
 
     for (x, y, w, h) in detect2:
         count2 += 1
@@ -301,7 +314,7 @@ def findObjects(input_path, output_path):
         cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 3)
         cropped = img[y:y + h, x:x + w]
         orientation, pick_point = analyze2(cropped)
-        pickpoint = (pick_point[0] + (pick_point[2] / 2), pick_point[1] + (pick_point[3] / 2))
+        pickpoint = (pick_point[0] + int(pick_point[2] / 2), pick_point[1] + int(pick_point[3] / 2))
         cv2.rectangle(img, (x+pick_point[0], y+pick_point[1]), ( x+pick_point[0]+pick_point[2], y+pick_point[1]+pick_point[3]), (0, 255, 0), 5)
         cv2.putText(img, "Part 2" + sizeText + "ori:"+ str(orientation) + str(pickpoint), (x, y - 10), cv2.FONT_HERSHEY_COMPLEX, 1.5, (0, 255, 0), 2)
         cv2.circle(img, (x+int(w/2),y+int(h/2)), 5, (255, 0, 0), -1)
@@ -315,7 +328,7 @@ def findObjects(input_path, output_path):
         cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 3)
         cropped = img[y:y + h, x:x + w]
         orientation, pick_point = analyze3(cropped)
-        pickpoint = (pick_point[0] + (pick_point[2] / 2), pick_point[1] + (pick_point[3] / 2))
+        pickpoint = (pick_point[0] + int(pick_point[2] / 2), pick_point[1] + int(pick_point[3] / 2))
         cv2.rectangle(img, (x+pick_point[0], y+pick_point[1]), ( x+pick_point[0]+pick_point[2], y+pick_point[1]+pick_point[3]), (0, 255, 0), 5)
         cv2.putText(img, "Part 3" + sizeText + "ori:"+ str(orientation) + str(pickpoint), (x, y - 10), cv2.FONT_HERSHEY_COMPLEX, 1.5, (0, 255, 0), 2)
         # print("Part 3", end=",")
@@ -329,7 +342,7 @@ def findObjects(input_path, output_path):
         cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 3)
         cropped = img[y:y + h, x:x + w]
         orientation = analyze4(cropped)
-        pickpoint = (x+(w/2), y+(h/2))
+        pickpoint = (x+int(w/2), y+int(h/2))
         cv2.circle(img, (x + int(w / 2), y + int(h / 2)), 5, (255, 0, 0), -1)
         cv2.putText(img, "Part 4"+sizeText + "ori:"+ str(orientation) + str(pickpoint), (x, y - 10), cv2.FONT_HERSHEY_COMPLEX, 1.5, (0, 255, 0), 2)
         # print("Part 4", end=",")
@@ -341,7 +354,7 @@ def findObjects(input_path, output_path):
         cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 3)
         cropped = img[y:y + h, x:x + w]
         orientation = analyze5(cropped)
-        pickpoint = (x+(w/2), y+(h/2))
+        pickpoint = (x+int(w/2), y+int(h/2))
         cv2.putText(img, "Part 5"+sizeText + "ori:"+ str(orientation) + str(pickpoint), (x, y - 10), cv2.FONT_HERSHEY_COMPLEX, 1.5, (0, 255, 0), 2)
         cv2.circle(img, (x + int(w / 2), y + int(h / 2)), 5, (255, 0, 0), -1)
         # print("Part 5", end=",")
@@ -353,7 +366,7 @@ def findObjects(input_path, output_path):
         cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 3)
         cropped = img[y:y + h, x:x + w]
         orientation = analyze6(cropped)
-        pickpoint = (x+(w/2), y+(h/2))
+        pickpoint = (x+int(w/2), y+int(h/2))
         cv2.putText(img, "Part 6"+sizeText + "ori:"+ str(orientation) + str(pickpoint), (x, y - 10), cv2.FONT_HERSHEY_COMPLEX, 1.5, (0, 255, 0), 2)
         cv2.circle(img, (x + int(w / 2), y + int(h / 2)), 5, (255, 0, 0), -1)
         # print("Part 6", end=",")
@@ -365,7 +378,7 @@ def findObjects(input_path, output_path):
         cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 3)
         cropped = img[y:y + h, x:x + w]
         orientation = analyze7(cropped)
-        pickpoint = (x+(w/2), y+(h/2))
+        pickpoint = (x+int(w/2), y+int(h/2))
         cv2.putText(img, "Part 7"+sizeText + "ori:"+ str(orientation) + str(pickpoint), (x, y - 10), cv2.FONT_HERSHEY_COMPLEX, 1.5, (0, 255, 0), 2)
         cv2.circle(img, (x + int(w / 2), y + int(h / 2)), 5, (255, 0, 0), -1)
         # print("Part 7", end=",")
@@ -377,7 +390,7 @@ def findObjects(input_path, output_path):
         cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 3)
         cropped = img[y:y + h, x:x + w]
         orientation = analyze8(cropped)
-        pickpoint = (x+(w/2), y+(h/2))
+        pickpoint = (x+int(w/2), y+int(h/2))
         cv2.putText(img, "Part 8"+sizeText + "ori:"+ str(orientation) + str(pickpoint), (x, y - 10), cv2.FONT_HERSHEY_COMPLEX, 1.5, (0, 255, 0), 2)
         cv2.circle(img, (x + int(w / 2), y + int(h / 2)), 5, (255, 0, 0), -1)
         # print("Part 8", end=",")
@@ -389,7 +402,7 @@ def findObjects(input_path, output_path):
         cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 3)
         cropped = img[y:y + h, x:x + w]
         orientation = analyze9(cropped)
-        pickpoint = (x+(w/2), y+(h/2))
+        pickpoint = (x+int(w/2), y+int(h/2))
         cv2.putText(img, "Part 9"+sizeText + "ori:"+ str(orientation) + str(pickpoint), (x, y - 10), cv2.FONT_HERSHEY_COMPLEX, 1.5, (0, 255, 0), 2)
         cv2.circle(img, (x + int(w / 2), y + int(h / 2)), 5, (255, 0, 0), -1)
         # print("Part 9", end=",")
@@ -413,17 +426,17 @@ def findObjects(input_path, output_path):
         cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 3)
         cropped = img[y:y + h, x:x + w]
         orientation = analyze11(cropped)
-        pickpoint = (x+(w/2), y+(h/2))
+        pickpoint = (x+int(w/2), y+int(h/2))
         cv2.putText(img, "Part 11"+sizeText + "ori:"+ str(orientation) + str(pickpoint), (x, y - 10), cv2.FONT_HERSHEY_COMPLEX, 1.5, (0, 255, 0), 2)
         cv2.circle(img, (x + int(w / 2), y + int(h / 2)), 5, (255, 0, 0), -1)
         # print("Part 11", end=",")
         sendData(11,pickpoint[0],pickpoint[1],orientation, count11)
 
 
-    print()
+    # print()
     cv2.putText(img, "count: "+str(count1), (20,20), cv2.FONT_HERSHEY_COMPLEX, 1.0, (0, 0, 255), 2)
 
-    cv2.imshow("Indust Labs Object Detection Program", img)
+    # cv2.imshow("Indust Labs Object Detection Program", img)
     cv2.imwrite(output_path, img)
     cv2.waitKey(10)
 
@@ -453,14 +466,14 @@ if __name__ == '__main__':
     path = "C:/Users/industlabs/Desktop/TestStage3/input/"
     output = "C:/Users/industlabs/Desktop/TestStage3/output/"
 
-    global nextreg
-    nextreg = 20
-
     deleteOldFiles(output)
 
     try:
-        client = ModbusClient(host="192.168.188.1", port=502)
-        client.open()
+        while True:
+            client = ModbusClient(host="192.168.188.1", port=502)
+            client.open()
+            if client.is_open():
+                break
     except:
         print("Unable to initialize the modbus client or open the modbus connection.")
         print("Press enter to exit.")
@@ -469,29 +482,45 @@ if __name__ == '__main__':
 
     i = 1
 
-    for filename in os.listdir(path):
-        while True:
-            # fetch first register
-            reg1 = client.read_holding_registers(0)
-            # check data bank reset
-            if reg1==0:
-                break
+    while True:
+        for filename in os.listdir(path):
+            while True:
+                # fetch first register
+                reg1 = client.read_holding_registers(0)
+                # check data bank reset
+                if not client.is_open():
+                    print("Cannot read from modbus server")
+                    time.sleep(2)
+                    continue
+                elif reg1[0]==0:
+                    break
 
-        output_file = str(i) + ".jpg"
-        input_path = path + filename
-        output_path = output + output_file
-        try:
+            output_file = str(i) + ".jpg"
+            input_path = path + filename
+            output_path = output + output_file
+
+            # try:
+            #     findObjects(input_path, output_path)
+            #     statuscheck = client.write_single_register(0,i)
+            #     ## Try to delete the file ##
+            #     try:
+            #         os.remove(input_path)
+            #     except OSError as e:  ## if failed, report it back to the user ##
+            #         print("Error: %s - %s." % (e.filename, e.strerror))
+            # except Exception as e:
+            #     print("error in finding objects", input_path)
+            #     print(e)
+
             findObjects(input_path, output_path)
-            client.write_single_register(i)
+            statuscheck = client.write_single_register(0,i)
             ## Try to delete the file ##
             try:
                 os.remove(input_path)
             except OSError as e:  ## if failed, report it back to the user ##
                 print("Error: %s - %s." % (e.filename, e.strerror))
-        except:
-            print("error in finding objects", input_path)
-        time.sleep(1)
-        i += 1
+
+            time.sleep(1)
+            i += 1
 
     client.close()
     cv2.destroyAllWindows()
