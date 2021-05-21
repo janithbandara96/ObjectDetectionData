@@ -463,14 +463,14 @@ def deleteOldFiles(path):
 
 # Driver Code
 if __name__ == '__main__':
-    path = "C:/Users/industlabs/Desktop/TestStage3/input/"
-    output = "C:/Users/industlabs/Desktop/TestStage3/output/"
+    path = "D:/Users/janith/Desktop/TestStage4/input/"
+    output = "D:/Users/janith/Desktop/TestStage4/output/"
 
     deleteOldFiles(output)
 
     try:
         while True:
-            client = ModbusClient(host="192.168.188.1", port=502)
+            client = ModbusClient(host="localhost", port=502)
             client.open()
             if client.is_open():
                 break
@@ -510,6 +510,7 @@ if __name__ == '__main__':
             # except Exception as e:
             #     print("error in finding objects", input_path)
             #     print(e)
+            print("call findObjects", i)
 
             findObjects(input_path, output_path)
             statuscheck = client.write_single_register(0,i)
