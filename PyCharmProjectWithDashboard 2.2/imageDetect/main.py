@@ -65,8 +65,20 @@ part11_4_casc = cv2.CascadeClassifier('sub_casc/cascade11.4.xml')
 # Load keras model
 main_model = tensorflow.keras.models.load_model('main_keras_models/keras_model_11Parts.h5')
 three_parts_model = tensorflow.keras.models.load_model('main_keras_models/keras_model_3Parts.h5')
+pikpoint_model = tensorflow.keras.models.load_model('main_keras_models/keras_model_pikpoint.h5')
 
-model1 = tensorflow.keras.models.load_model('main_keras_models/keras_model_3Parts.h5')
+model1 = tensorflow.keras.models.load_model('sub_keras_models/keras_model_1.h5')
+model2 = tensorflow.keras.models.load_model('sub_keras_models/keras_model_2.h5')
+model3 = tensorflow.keras.models.load_model('sub_keras_models/keras_model_1.h5')
+model4 = tensorflow.keras.models.load_model('sub_keras_models/keras_model_4.h5')
+model5 = tensorflow.keras.models.load_model('sub_keras_models/keras_model_5.h5')
+model6 = tensorflow.keras.models.load_model('sub_keras_models/keras_model_6.h5')
+model7 = tensorflow.keras.models.load_model('sub_keras_models/keras_model_7.h5')
+model8 = tensorflow.keras.models.load_model('sub_keras_models/keras_model_8.h5')
+model9 = tensorflow.keras.models.load_model('sub_keras_models/keras_model_9.h5')
+model10 = tensorflow.keras.models.load_model('sub_keras_models/keras_model_10.h5')
+model11 = tensorflow.keras.models.load_model('sub_keras_models/keras_model_11.h5')
+model11_2 = tensorflow.keras.models.load_model('sub_keras_models/keras_model11.2.h5')
 
 nextreg = 20
 
@@ -80,177 +92,183 @@ def resize(img, scale):
     img = cv2.resize(img, dim, interpolation=cv2.INTER_AREA)
     return img
 
+def processImage(img):
+    data = np.ndarray(shape=(1, 224, 224, 3), dtype=np.float32)
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    image = Image.fromarray(img)
+
+    # resize the image to a 224x224 with the same strategy as in TM2:
+    # resizing the image to be at least 224x224 and then cropping from the center
+    size = (224, 224)
+    image = ImageOps.fit(image, size, Image.ANTIALIAS)
+    # turn the image into a numpy array
+    image_array = np.asarray(image)
+
+    # Normalize the image
+    normalized_image_array = (image_array.astype(np.float32) / 127.0) - 1
+    # Load the image into the array
+    data[0] = normalized_image_array
+    return data
+
 def analyze1(cropped):
     orientation = 0
     pick_point = [0,0,0,0]
-    detect1_1 = part1_1_casc.detectMultiScale(cropped, 1.1, 1, minSize=(50, 50))
-    detect1_2 = part1_2_casc.detectMultiScale(cropped, 1.1, 1, minSize=(50, 50))
-    detect1_3 = part1_3_casc.detectMultiScale(cropped, 1.1, 1, minSize=(50, 50))
-    if len(detect1_1)>0:
-        orientation = 1
-    elif len(detect1_2)>0:
-        orientation = 2
-    elif len(detect1_3)>0:
-        orientation = 3
+
+    data =  processImage(cropped)
+    prediction =  model1.predict(data)
+    count = 0
+    for i in prediction[0]:
+        count += 1
+        if i>0.6:
+            orientation = count
+
     detectpik = partpik_casc.detectMultiScale(cropped, 1.1, 1, minSize=(0, 10))
-    if len(detectpik)>0:
-        pick_point = detectpik[0]
+    for (x, y, w, h) in detectpik:
+        recropped = cropped[y:y + h, x:x + w]
+        datapick = processImage(recropped)
+        prediction = pikpoint_model.predict(datapick)
+        if prediction[0][0]>0.8:
+            pick_point = [x, y, w, h]
+
     return orientation, pick_point
 
 def analyze2(cropped):
     orientation = 0
     pick_point = [0, 0, 0, 0]
-    detect2_1 = part2_1_casc.detectMultiScale(cropped, 1.1, 1, minSize=(50, 50))
-    detect2_2 = part2_2_casc.detectMultiScale(cropped, 1.1, 1, minSize=(50, 50))
-    detect2_3 = part2_3_casc.detectMultiScale(cropped, 1.1, 1, minSize=(50, 50))
 
-    if len(detect2_1)>0:
-        orientation = 1
-    elif len(detect2_2)>0:
-        orientation = 2
-    elif len(detect2_3)>0:
-        orientation = 3
-    detectpik = partpik_casc.detectMultiScale(cropped, 1.1, 1, minSize=(10, 10))
-    if len(detectpik)>0:
-        pick_point = detectpik[0]
+    data = processImage(cropped)
+    prediction = model1.predict(data)
+    count = 0
+    for i in prediction[0]:
+        count += 1
+        if i > 0.6:
+            orientation = count
+
+    detectpik = partpik_casc.detectMultiScale(cropped, 1.1, 1, minSize=(0, 10))
+    for (x, y, w, h) in detectpik:
+        recropped = cropped[y:y + h, x:x + w]
+        datapick = processImage(recropped)
+        prediction = pikpoint_model.predict(datapick)
+        if prediction[0][0] > 0.8:
+            pick_point = [x, y, w, h]
+
     return orientation, pick_point
 
 def analyze3(cropped):
     orientation = 0
     pick_point = [0, 0, 0, 0]
-    detect3_1 = part3_1_casc.detectMultiScale(cropped, 1.1, 1, minSize=(50, 50))
-    detect3_2 = part3_2_casc.detectMultiScale(cropped, 1.1, 1, minSize=(50, 50))
-    detect3_3 = part3_3_casc.detectMultiScale(cropped, 1.1, 1, minSize=(50, 50))
-    if len(detect3_1)>0:
-        orientation = 1
-    elif len(detect3_2)>0:
-        orientation = 2
-    elif len(detect3_3)>0:
-        orientation = 3
-    detectpik = partpik_casc.detectMultiScale(cropped, 1.1, 1, minSize=(10, 10))
-    if len(detectpik)>0:
-        pick_point = detectpik[0]
+
+    data = processImage(cropped)
+    prediction = model1.predict(data)
+    count = 0
+    for i in prediction[0]:
+        count += 1
+        if i > 0.6:
+            orientation = count
+
+    detectpik = partpik_casc.detectMultiScale(cropped, 1.1, 1, minSize=(0, 10))
+    for (x, y, w, h) in detectpik:
+        recropped = cropped[y:y + h, x:x + w]
+        datapick = processImage(recropped)
+        prediction = pikpoint_model.predict(datapick)
+        if prediction[0][0] > 0.8:
+            pick_point = [x, y, w, h]
+
     return orientation, pick_point
 
 def analyze4(cropped):
     orientation = 0
-    detect4_1 = part4_1_casc.detectMultiScale(cropped, 1.1, 1, minSize=(50, 50))
-    detect4_2 = part4_2_casc.detectMultiScale(cropped, 1.1, 1, minSize=(50, 50))
-    if len(detect4_1)>0:
-        orientation = 1
-    elif len(detect4_2)>0:
-        orientation = 2
+    data = processImage(cropped)
+    prediction = model1.predict(data)
+    count = 0
+    for i in prediction[0]:
+        count += 1
+        if i > 0.6:
+            orientation = count
     return orientation
 
 def analyze5(cropped):
     orientation = 0
-    detect5_1 = part5_1_casc.detectMultiScale(cropped, 1.1, 1, minSize=(50, 50))
-    detect5_2 = part5_2_casc.detectMultiScale(cropped, 1.1, 1, minSize=(50, 50))
-    if len(detect5_1)>0:
-        orientation = 1
-    elif len(detect5_2)>0:
-        orientation = 2
+    data = processImage(cropped)
+    prediction = model1.predict(data)
+    count = 0
+    for i in prediction[0]:
+        count += 1
+        if i > 0.6:
+            orientation = count
     return orientation
 
 def analyze6(cropped):
     orientation = 0
-    detect6_1 = part6_1_casc.detectMultiScale(cropped, 1.1, 1, minSize=(50, 50))
-    detect6_2 = part6_2_casc.detectMultiScale(cropped, 1.1, 1, minSize=(50, 50))
-    detect6_3 = part6_3_casc.detectMultiScale(cropped, 1.1, 1, minSize=(50, 50))
-    detect6_4 = part6_4_casc.detectMultiScale(cropped, 1.1, 1, minSize=(50, 50))
-    detect6_up = part6_up_casc.detectMultiScale(cropped, 1.1, 1, minSize=(50, 50))
-    detect6_down = part6_dowm_casc.detectMultiScale(cropped, 1.1, 1, minSize=(50, 50))
-
-    if len(detect6_1)>0:
-        orientation = 1
-    elif len(detect6_2)>0:
-        orientation = 2
-    elif len(detect6_3)>0:
-        orientation = 3
-    elif len(detect6_4)>0:
-        orientation = 4
-    elif len(detect6_up)>0:
-        orientation = 5
-    elif len(detect6_down)>0:
-        orientation = 6
+    data = processImage(cropped)
+    prediction = model1.predict(data)
+    count = 0
+    for i in prediction[0]:
+        count += 1
+        if i > 0.6:
+            orientation = count
     return orientation
 
 def analyze7(cropped):
     orientation = 0
-    detect7_1 = part7_1_casc.detectMultiScale(cropped, 1.1, 1, minSize=(50, 50))
-    detect7_2 = part7_2_casc.detectMultiScale(cropped, 1.1, 1, minSize=(50, 50))
-    if len(detect7_1)>0:
-        orientation = 1
-    elif len(detect7_2)>0:
-        orientation = 2
+    data = processImage(cropped)
+    prediction = model1.predict(data)
+    count = 0
+    for i in prediction[0]:
+        count += 1
+        if i > 0.6:
+            orientation = count
     return orientation
 
 def analyze8(cropped):
     orientation = 0
-    detect8_1 = part8_1_casc.detectMultiScale(cropped, 1.1, 1, minSize=(50, 50))
-    detect8_2 = part8_2_casc.detectMultiScale(cropped, 1.1, 1, minSize=(50, 50))
-    detect8_3 = part8_3_casc.detectMultiScale(cropped, 1.1, 1, minSize=(50, 50))
-    detect8_4 = part8_4_casc.detectMultiScale(cropped, 1.1, 1, minSize=(50, 50))
-
-    if len(detect8_1)>0:
-        orientation = 1
-    elif len(detect8_2)>0:
-        orientation = 2
-    elif len(detect8_3)>0:
-        orientation = 3
-    elif len(detect8_4)>0:
-        orientation = 4
+    data = processImage(cropped)
+    prediction = model1.predict(data)
+    count = 0
+    for i in prediction[0]:
+        count += 1
+        if i > 0.6:
+            orientation = count
     return orientation
 
 def analyze9(cropped):
     orientation = 0
-    detect9_1 = part9_1_casc.detectMultiScale(cropped, 1.1, 1, minSize=(50, 50))
-    detect9_2 = part9_2_casc.detectMultiScale(cropped, 1.1, 1, minSize=(50, 50))
-    detect9_3 = part9_3_casc.detectMultiScale(cropped, 1.1, 1, minSize=(50, 50))
-    detect9_4 = part9_4_casc.detectMultiScale(cropped, 1.1, 1, minSize=(50, 50))
-
-    if len(detect9_1)>0:
-        orientation = 1
-    elif len(detect9_2)>0:
-        orientation = 2
-    elif len(detect9_3)>0:
-        orientation = 3
-    elif len(detect9_4)>0:
-        orientation = 4
+    data = processImage(cropped)
+    prediction = model1.predict(data)
+    count = 0
+    for i in prediction[0]:
+        count += 1
+        if i > 0.6:
+            orientation = count
     return orientation
 
 def analyze10(cropped):
     orientation = 0
-    detect10_1 = part10_1_casc.detectMultiScale(cropped, 1.1, 1, minSize=(50, 50))
-    detect10_2 = part10_2_casc.detectMultiScale(cropped, 1.1, 1, minSize=(50, 50))
-    detect10_3 = part10_3_casc.detectMultiScale(cropped, 1.1, 1, minSize=(50, 50))
-    detect10_4 = part10_4_casc.detectMultiScale(cropped, 1.1, 1, minSize=(50, 50))
-
-    if len(detect10_1)>0:
-        orientation = 1
-    elif len(detect10_2)>0:
-        orientation = 2
-    elif len(detect10_3)>0:
-        orientation = 3
-    elif len(detect10_4)>0:
-        orientation = 4
+    data = processImage(cropped)
+    prediction = model1.predict(data)
+    count = 0
+    for i in prediction[0]:
+        count += 1
+        if i > 0.6:
+            orientation = count
     return orientation
 
 def analyze11(cropped):
     orientation = 0
-    detect11_1 = part11_1_casc.detectMultiScale(cropped, 1.1, 1, minSize=(50, 50))
-    detect11_2 = part11_2_casc.detectMultiScale(cropped, 1.1, 1, minSize=(50, 50))
-    detect11_3 = part11_3_casc.detectMultiScale(cropped, 1.1, 1, minSize=(50, 50))
-    detect11_4 = part11_4_casc.detectMultiScale(cropped, 1.1, 1, minSize=(50, 50))
-
-    if len(detect11_1)>0:
-        orientation = 1
-    elif len(detect11_2)>0:
-        orientation = 2
-    elif len(detect11_3)>0:
-        orientation = 3
-    elif len(detect11_4)>0:
-        orientation = 4
+    data = processImage(cropped)
+    prediction = model1.predict(data)
+    count = 0
+    for i in prediction[0]:
+        count += 1
+        if i > 0.6:
+            if i==2 or i==4:
+                prediction2 = model11_2.predict(data)
+                if prediction2[0][0]>0.5:
+                    orientation = 2
+                elif prediction2[0][1]>0.5:
+                    orientation = 4
+            else:
+                orientation = count
     return orientation
 
 def sendData(partNo, pickpoinX, pickpointY, orientationNo, count):

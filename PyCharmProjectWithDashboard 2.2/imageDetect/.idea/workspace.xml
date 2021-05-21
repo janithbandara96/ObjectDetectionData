@@ -2,14 +2,18 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="a04d815e-2f90-481f-913a-3b5b8aa4a42c" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/../../PyCharmProjectWithDashboard 2.0/imageDetect/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../../PyCharmProjectWithDashboard 2.0/imageDetect/main_keras_models/keras_model_11Parts.h5" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../../PyCharmProjectWithDashboard 2.0/imageDetect/main_keras_models/keras_model_3Parts.h5" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../../PyCharmProjectWithDashboard/imageDetect/.idea/vcs.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../PyCharmProjectWithDashboard 2.0/imageDetect/.idea/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../PyCharmProjectWithDashboard 2.0/imageDetect/.idea/inspectionProfiles/profiles_settings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../../PyCharmProjectWithDashboard 2.0/imageDetect/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../PyCharmProjectWithDashboard 2.0/imageDetect/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/../../PyCharmProjectWithDashboard 2.0/imageDetect/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../PyCharmProjectWithDashboard/imageDetect/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/../../PyCharmProjectWithDashboard/imageDetect/main.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sub_keras_models/keras_model_1.h5" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sub_keras_models/keras_model_10.h5" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sub_keras_models/keras_model_11.h5" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sub_keras_models/keras_model_2.h5" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sub_keras_models/keras_model_4.h5" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sub_keras_models/keras_model_5.h5" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sub_keras_models/keras_model_6.h5" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sub_keras_models/keras_model_7.h5" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sub_keras_models/keras_model_8.h5" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sub_keras_models/keras_model_9.h5" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -29,10 +33,13 @@
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/sub_keras_models" />
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\Users\janith\Desktop\iTemDetect2\ObjectDetectionData\PyCharmProjectWithDashboard 2.2\imageDetect\sub_keras_models" />
+      <recent name="D:\Users\janith\Desktop\iTemDetect2\ObjectDetectionData\PyCharmProjectWithDashboard 2.2\imageDetect\main_keras_models" />
+      <recent name="D:\Users\janith\Desktop\iTemDetect2\ObjectDetectionData\PyCharmProjectWithDashboard 2.2\imageDetect" />
       <recent name="D:\Users\janith\Desktop\iTemDetect2\ObjectDetectionData\PyCharmProjectWithDashboard 2.0\imageDetect\main_keras_models" />
     </key>
   </component>
